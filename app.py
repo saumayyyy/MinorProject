@@ -22,11 +22,14 @@ df['cost_for_two'] = df['cost_for_two'].replace(',', '', regex=True).astype(floa
 
 # ---- Sidebar for Filters ----
 st.sidebar.header("Filter Data")
-# Replace 'city' filter with 'listed_in(type)' or any other appropriate column
-category_filter = st.sidebar.selectbox("Select Category", options=df['listed_in(type)'].unique())
+# Add an option for "All Categories" in the dropdown
+category_filter = st.sidebar.selectbox("Select Category", options=["All Categories"] + list(df['listed_in(type)'].unique()))
 
-# Use the selected filter in the rest of your analysis
-df_filtered = df[df['listed_in(type)'] == category_filter]
+# Apply filter based on selection
+if category_filter == "All Categories":
+    df_filtered = df
+else:
+    df_filtered = df[df['listed_in(type)'] == category_filter]
 
 # Dashboard Title
 st.title(f"Zomato Restaurant Analytics Dashboard - {category_filter}")
@@ -45,13 +48,13 @@ with col4:
 
 # ---- Ratings Distribution ----
 st.markdown('### Ratings Distribution')
-rating_fig = px.histogram(df_filtered, x='rate', nbins=20, color_discrete_sequence=['#EF553B'])
+rating_fig = px.histogram(df_filtered, x='rate', nbins=20, color_discrete_sequence=['#FF00FF'])  # Magenta
 rating_fig.update_layout(title_text="Distribution of Restaurant Ratings", xaxis_title="Rating", yaxis_title="Count")
 st.plotly_chart(rating_fig, use_container_width=True)
 
 # ---- Cost Distribution ----
 st.markdown('### Cost Distribution for Two People')
-cost_fig = px.histogram(df_filtered, x='cost_for_two', nbins=20, color_discrete_sequence=['#636EFA'])
+cost_fig = px.histogram(df_filtered, x='cost_for_two', nbins=20, color_discrete_sequence=['#ADD8E6'])  # Light blue
 cost_fig.update_layout(title_text="Distribution of Approximate Cost for Two", xaxis_title="Cost (₹)", yaxis_title="Count")
 st.plotly_chart(cost_fig, use_container_width=True)
 
@@ -63,7 +66,7 @@ online_vs_offline = pd.DataFrame({
                        df_filtered[df_filtered['online_order'] == 'No']['rate'].mean()]
 })
 bar_fig = px.bar(online_vs_offline, x='Order Type', y='Average Rating', color='Order Type',
-                 color_discrete_sequence=['#00CC96', '#FFA15A'])
+                 color_discrete_sequence=['#FFFF00', '#00FFFF'])  # Yellow, Cyan
 bar_fig.update_layout(title_text="Average Ratings: Online vs Offline Orders")
 st.plotly_chart(bar_fig, use_container_width=True)
 
@@ -75,6 +78,6 @@ preferences_fig = go.Figure(go.Pie(
             df_filtered['online_order'].value_counts().get('No', 0)],
     hole=0.5
 ))
-preferences_fig.update_traces(marker=dict(colors=['#636EFA', '#EF553B']))
+preferences_fig.update_traces(marker=dict(colors=['#FF00FF', '#ADD8E6']))  # Magenta, Light blue
 preferences_fig.update_layout(title_text='Proportion of Restaurants Offering Online vs Offline Orders')
 st.plotly_chart(preferences_fig, use_container_width=True)
