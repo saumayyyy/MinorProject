@@ -46,24 +46,21 @@ with col3:
 with col4:
     st.metric(label="Online Orders Available", value=df_filtered['online_order'].value_counts().get('Yes', 0))
 
-# ---- New Question 1: Average Cost for Two Over Time ----
-st.markdown('### Average Cost for Two People Over Time')
+# ---- New Question: Average Rating by Restaurant Type ----
+st.markdown('### Average Rating by Restaurant Type')
 
-# Assuming we have a 'year' column in the dataset (replace 'year' with the correct time column if needed)
-if 'year' in df.columns:
-    avg_cost_over_time = df.groupby('year')['cost_for_two'].mean().reset_index()
+# Group data by restaurant type and calculate the average rating
+avg_rating_by_type = df.groupby('listed_in(type)')['rate'].mean().reset_index().sort_values(by='rate', ascending=False)
 
-    # Create a line chart for average cost over time
-    cost_line_fig = px.line(avg_cost_over_time, x='year', y='cost_for_two', 
-                            title="Average Cost for Two People Over Time", 
-                            labels={'year': 'Year', 'cost_for_two': 'Average Cost (₹)'},
-                            line_shape='spline')  # Spline for smooth curves
-    cost_line_fig.update_layout(xaxis_title="Year", yaxis_title="Average Cost (₹)")
-    st.plotly_chart(cost_line_fig, use_container_width=True)
-else:
-    st.write("No 'year' column found in the dataset to analyze trends over time.")
+# Create a line chart to show the variation in average rating across restaurant types
+rating_line_fig = px.line(avg_rating_by_type, x='listed_in(type)', y='rate', 
+                          title="Average Rating by Restaurant Type", 
+                          labels={'listed_in(type)': 'Restaurant Type', 'rate': 'Average Rating'},
+                          markers=True)  # Add markers to highlight each point
+rating_line_fig.update_layout(xaxis_title="Restaurant Type", yaxis_title="Average Rating")
+st.plotly_chart(rating_line_fig, use_container_width=True)
 
-# ---- New Question 2: Top Restaurants by Votes ----
+# ---- Top Restaurants by Votes ----
 st.markdown('### Top Restaurants by Votes')
 
 # Sort by the 'votes' column to get the most popular restaurants
