@@ -11,16 +11,25 @@ data_path = 'Zomato data .csv'  # Update with the correct path to your dataset
 df = pd.read_csv(data_path)
 
 # ---- Data Cleaning Section ----
+# Renaming columns for easier access
+df.rename(columns={'approx_cost(for two people)': 'cost_for_two'}, inplace=True)
+
+# Convert 'rate' column to float, handling edge cases
 df['rate'] = df['rate'].apply(lambda x: float(str(x).split('/')[0]) if '/' in str(x) else None)
-df['approx_cost(for two people)'] = df['approx_cost(for two people)'].replace(',', '', regex=True).astype(float)
+
+# Remove commas from the 'cost_for_two' column and convert it to float
+df['cost_for_two'] = df['cost_for_two'].replace(',', '', regex=True).astype(float)
 
 # ---- Sidebar for Filters ----
 st.sidebar.header("Filter Data")
-city_filter = st.sidebar.selectbox("Select City", options=df['city'].unique())
-df_filtered = df[df['city'] == city_filter]
+# Replace 'city' filter with 'listed_in(type)' or any other appropriate column
+category_filter = st.sidebar.selectbox("Select Category", options=df['listed_in(type)'].unique())
+
+# Use the selected filter in the rest of your analysis
+df_filtered = df[df['listed_in(type)'] == category_filter]
 
 # Dashboard Title
-st.title(f"Zomato Restaurant Analytics Dashboard - {city_filter}")
+st.title(f"Zomato Restaurant Analytics Dashboard - {category_filter}")
 
 # ---- KPIs Section ----
 st.markdown('### Key Performance Indicators')
@@ -30,7 +39,7 @@ with col1:
 with col2:
     st.metric(label="Average Rating", value=round(df_filtered['rate'].mean(), 2))
 with col3:
-    st.metric(label="Avg. Cost for Two", value=f"₹{int(df_filtered['approx_cost(for two people)'].mean())}")
+    st.metric(label="Avg. Cost for Two", value=f"₹{int(df_filtered['cost_for_two'].mean())}")
 with col4:
     st.metric(label="Online Orders Available", value=df_filtered['online_order'].value_counts().get('Yes', 0))
 
@@ -42,7 +51,7 @@ st.plotly_chart(rating_fig, use_container_width=True)
 
 # ---- Cost Distribution ----
 st.markdown('### Cost Distribution for Two People')
-cost_fig = px.histogram(df_filtered, x='approx_cost(for two people)', nbins=20, color_discrete_sequence=['#636EFA'])
+cost_fig = px.histogram(df_filtered, x='cost_for_two', nbins=20, color_discrete_sequence=['#636EFA'])
 cost_fig.update_layout(title_text="Distribution of Approximate Cost for Two", xaxis_title="Cost (₹)", yaxis_title="Count")
 st.plotly_chart(cost_fig, use_container_width=True)
 
